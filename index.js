@@ -1,5 +1,5 @@
 require("dotenv").config();
-
+const cron = require('node-cron');
 const express = require("express");
 const app = express();
 const port = process.env.PORT || 4000;
@@ -35,6 +35,25 @@ app.get("/gemini", async (req, res) =>{
   
     res.send(response)
 });
+
+async function runAi(){
+   
+  console.log('cron is running a job')
+
+  const response= await gemini(contextprompt)
+  // Parse JSON string into JavaScript object
+  var jsonObject = JSON.parse(response);
+
+  // Extract fields into variables
+  var promptText = jsonObject.prompt;
+  var captionText = jsonObject.caption;
+  
+  // Print the extracted values
+  console.log("Prompt:", promptText);
+  console.log("Caption:", captionText);
+  
+   await generateImage(promptText, captionText)
+}
 
 async function gemini(prmpt) {
   // For text-only input, use the gemini-pro model
@@ -161,6 +180,11 @@ const postToInsta = async (buffer,caption) => {
 // const cronInsta = new CronJob("30 5 * * *", async () => {
 //     postToInsta();
 // });
+
+// Cron job to run the function twice daily between 8am to 11pm
+cron.schedule('0 8,20 * * *', () => {
+  runAi()
+});
 
 // cronInsta.start();
 const contextprompt = 'give me a prompt for image generation for my Instagram AI character girl/female post based on real-life Indian events /festivals(if the festival happening now,if the festival is not happening now,dont include it) or then random human emotions or dressed photos like humans always post or if any viral news is available then react to it like cricket match. My AI character is a beautiful normal college girl from kolkata india, he loves taking images, traveling, and capturing nature. write the prompt in a ["prompt here"]and the caption which should be related to the image and sound like a humanoid Instagram caption(like sometimes it may contain Hindi song lines in hinglish with emoji or bengali song line quotes etc or a normal caption without song)written in english or bengali inside ("caption here"). The response should only contain the prompt and the caption as I need to extract them in JavaScript. Here are some previous topics that my model posted before(to get the context of her personality or not similar repeat post) : ["A pic with a cat, showing she loves animals"," a pic in an expensive cafe"," a selfie in mountain traveling", "A simple smiling face ", "An aesthetic hide face selfie with effect"]. You can mix and randomize and create the response as a human is posting. always give response in json only  dont include any other comment except the prompt and the caption' 
