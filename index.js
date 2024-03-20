@@ -211,16 +211,16 @@ const postToStory = async (buffer,caption) => {
   //   url:link,
   //   encoding: null,
   // });
-  await ig.publish.photo({
-    file: buffer,
-    caption: caption,
-  });
+  // await ig.publish.photo({
+  //   file: buffer,
+  //   caption: caption,
+  // });
 
   await ig.publish.story({
     file: buffer,
   }
     
-  )
+  );
 
   
 };
