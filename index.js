@@ -26,14 +26,14 @@ app.get("/gemini", async (req, res) =>{
   // Extract fields into variables
   var promptText = jsonObject.prompt;
   var captionText = jsonObject.caption;
-
+   res.send(promptText)
   // Print the extracted values
   console.log("Prompt:", promptText);
   console.log("Caption:", captionText);
   
    await generateImage(promptText, captionText)
   
-    res.send(response)
+    
 });
 
 async function runAi(){
