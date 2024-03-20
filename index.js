@@ -15,7 +15,27 @@ const model = genAI.getGenerativeModel({ model: "gemini-pro"});
 
 // ...
 
+// ...
+app.get("/story", async (req, res) =>{
 
+  const response= await gemini(contextprompt)
+
+
+ // Parse JSON string into JavaScript object
+ var jsonObject = JSON.parse(response);
+
+ // Extract fields into variables
+ var promptText = jsonObject.prompt;
+ var captionText = jsonObject.caption;
+res.send(response)
+ // Print the extracted values
+ console.log("Prompt:", promptText);
+ console.log("Caption:", captionText);
+ 
+  await generateImage(promptText, captionText,2)
+ 
+  
+});
 
 app.get("/gemini", async (req, res) =>{
 
@@ -31,7 +51,7 @@ app.get("/gemini", async (req, res) =>{
   console.log("Prompt:", promptText);
   console.log("Caption:", captionText);
   
-   await generateImage(promptText, captionText)
+   await generateImage(promptText, captionText,1)
   
     
 });
@@ -52,7 +72,7 @@ async function runAi(){
   console.log("Prompt:", promptText);
   console.log("Caption:", captionText);
   
-   await generateImage(promptText, captionText)
+   await generateImage(promptText, captionText,1)
 }
 
 async function gemini(prmpt) {
@@ -106,7 +126,7 @@ const replicate = new Replicate({
   auth: process.env["REPLICATE_API_TOKEN"],
 });
 
-async function generateImage(prompt,caption){
+async function generateImage(prompt,caption,type){
   const output = await replicate.run(  "tencentarc/photomaker:ddfc2b08d209f9fa8c1eca692712918bd449f695dabb4a958da31802a9570fe4",
     {
       input: {
@@ -129,7 +149,12 @@ async function generateImage(prompt,caption){
     downloadImageAndConvertToJpg(url)
     .then(jpgBuffer => {
         // Use the resulting JPG buffer as needed
-      postToInsta(jpgBuffer,caption);
+       // Use the resulting JPG buffer as needed
+        if(type==1){
+          postToInsta(jpgBuffer,caption);
+        }else{
+          postToStory(jpgBuffer,caption);
+        }
        
     })
     .catch(error => {
@@ -175,6 +200,29 @@ const postToInsta = async (buffer,caption) => {
     file: buffer,
     caption: caption,
   });
+};
+
+const postToStory = async (buffer,caption) => {
+  const ig = new IgApiClient();
+  ig.state.generateDevice(process.env.IG_USERNAME);
+  await ig.account.login(process.env.IG_USERNAME, process.env.IG_PASSWORD);
+
+  // const imageBuffer = await get({
+  //   url:link,
+  //   encoding: null,
+  // });
+  await ig.publish.photo({
+    file: buffer,
+    caption: caption,
+  });
+
+  await ig.publish.story({
+    file: buffer,
+  }
+    
+  )
+
+  
 };
 
 // const cronInsta = new CronJob("30 5 * * *", async () => {
